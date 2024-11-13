@@ -75,6 +75,7 @@ class AtomGraphDataset:
 
     def rewrite_labels_to_data(self):
         #umm userlabels? .. looks important for training datasets AAW ..
+        
         """
         Based on self.dataset dict's keys
         write data[KEY.USER_LABEL] to correspond to dict's keys
@@ -207,6 +208,8 @@ class AtomGraphDataset:
         but KEY.USER_LABEL of each data is preserved
         """
         # train test splitting? seems like ..
+        # delulu or nesting a function inside a function
+        # yoy  #TODO
         
         def divide(ratio: float, data_list: List, ignore_test=True):
             if ratio > 0.5:
@@ -256,13 +259,20 @@ class AtomGraphDataset:
         type_map: Z->one_hot_index(node_feature)
         return Dict{label: {symbol, natom}]}
         """
-        assert not (self.x_is_one_hot_idx is True and type_map is None)
+        # what a brain twister .. i'm not built for this
+        # am i delusional or 
+        # assert self.x_is_one_hot_idx is not True or type_map is not None is it?
+        # is this basic math? or am i just dumb?
+        
+        assert not (self.x_is_one_hot_idx is True and type_map is None) 
         natoms = {}
         for label, data in self.dataset.items():
             natoms[label] = Counter()
+            # initiate a new counter everytime? label ... right .... a f wait howduzthe dataset look like at the first place
             for datum in data:
                 if self.x_is_one_hot_idx and type_map is not None:
                     Zs = util.onehot_to_chem(datum[self.DATA_KEY_X], type_map)
+                    # why named Zs .................... what's a Z
                 else:
                     Zs = [
                         chemical_symbols[z]
@@ -270,24 +280,27 @@ class AtomGraphDataset:
                     ]
                 cnt = Counter(Zs)
                 natoms[label] += cnt
-            natoms[label] = dict(natoms[label])
+            natoms[label] = dict(natoms[label]) # what happens when you dict a counter nvmjsutfoundout
         return natoms
 
+    # per ..? mean of ..? 
     def get_per_atom_mean(self, key: str, key_num_atoms: str = KEY.NUM_ATOMS):
         """
-        return per_atom mean of given data key
+        return per_atom mean of given data key 
         """
         eng_list = torch.Tensor(
             [x[key] / x[key_num_atoms] for x in self.to_list()]
         )
         return float(torch.mean(eng_list))
-
+    # eng for energy .. 
+    # alias 
     def get_per_atom_energy_mean(self):
         """
         alias for get_per_atom_mean(KEY.ENERGY)
         """
         return self.get_per_atom_mean(self.DATA_KEY_ENERGY)
 
+    # plshelpimunderdawater
     def get_species_ref_energy_by_linear_comb(self, num_chem_species: int):
         """
         Total energy as y, composition as c_i,
@@ -300,6 +313,7 @@ class AtomGraphDataset:
         assert self.x_is_one_hot_idx is True
         data_list = self.to_list()
 
+        # torch.bincount Counter?
         c = torch.zeros((len(data_list), num_chem_species))
         for idx, datum in enumerate(data_list):
             c[idx] = torch.bincount(
@@ -309,6 +323,7 @@ class AtomGraphDataset:
         c = c.numpy()
         y = y.numpy()
 
+        # wdym tweak imtheonewhostweakinghere
         # tweak to fine tune training from many-element to small element
         zero_indices = np.all(c == 0, axis=0)
         c_reduced = c[:, ~zero_indices]
@@ -316,8 +331,9 @@ class AtomGraphDataset:
         coef_reduced = (
             Ridge(alpha=0.1, fit_intercept=False).fit(c_reduced, y).coef_
         )
+        # but why is it Ridge tho
         full_coeff[~zero_indices] = coef_reduced
-
+        # prune ..
         return full_coeff
 
     def get_force_rms(self):
@@ -332,7 +348,9 @@ class AtomGraphDataset:
             )
         force_list = torch.Tensor(force_list)
         return float(torch.sqrt(torch.mean(torch.pow(force_list, 2))))
-
+        
+    # torch.mean/pow/sqrt on torch.Tensor
+    
     def get_species_wise_force_rms(self, num_chem_species: int):
         """
         Return force rms for each species
@@ -341,19 +359,25 @@ class AtomGraphDataset:
         assert self.x_is_one_hot_idx is True
         data_list = self.to_list()
 
+        # atomsx?
+
         atomx = torch.concat([d[self.DATA_KEY_X] for d in data_list])
         force = torch.concat([d[self.DATA_KEY_FORCE] for d in data_list])
-
+        # torch.repeat_interleave(x,int)
         index = atomx.repeat_interleave(3, 0).reshape(force.shape)
         rms = torch.zeros(
             (num_chem_species, 3),
             dtype=force.dtype,
             device=force.device
         )
+        
+        # is torch his first language?
         rms.scatter_reduce_(
             0, index, force.square(),
             reduce='mean', include_self=False
         )
+        # why is it called reduction tho
+        # k.................
         return torch.sqrt(rms.mean(dim=1))
 
     def get_avg_num_neigh(self):
@@ -365,7 +389,8 @@ class AtomGraphDataset:
                 )
 
         avg_num_neigh = np.average(n_neigh)
-        return avg_num_neigh
+        return avg_num_neigh # basically count the number of neighbors .. right? and ..
+    # right average the list ...
 
     def get_statistics(self, key: str):
         """
@@ -373,7 +398,7 @@ class AtomGraphDataset:
         key of dict is its label and _total for total statistics
         value of dict is dict of statistics (mean, std, median, max, min)
         """
-
+# statistics~ statistics
         def _get_statistic_dict(tensor_list):
             data_list = torch.cat(
                 [
@@ -390,8 +415,11 @@ class AtomGraphDataset:
                 'max': float(torch.max(data_list)),
                 'min': float(torch.min(data_list)),
             }
+        # regardless of the input i see ..
 
-        res = {}
+        # is it a convention? adding a _ to the ... nesting function?
+        # what's so good about nesting functions
+        res = {} # still doonno what the dataset looks like
         for label, values in self.dataset.items():
             # flatten list of torch.Tensor (values)
             tensor_list = [x[key] for x in values]

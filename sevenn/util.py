@@ -111,12 +111,12 @@ def postprocess_output(output, loss_types):
         results[loss_type] = (pred, ref, vdim)
     return results
 
-
+# right .. ase not chempy 
 def onehot_to_chem(one_hot_indices: List[int], type_map: Dict[int, int]):
     from ase.data import chemical_symbols
-
-    type_map_rev = {v: k for k, v in type_map.items()}
-    return [chemical_symbols[type_map_rev[x]] for x in one_hot_indices]
+    # ** did i use chempy for parsing?
+    type_map_rev = {v: k for k, v in type_map.items()} # k...
+    return [chemical_symbols[type_map_rev[x]] for x in one_hot_indices] # neatshine
 
 
 def _patch_old_config(config: Dict[str, Any]):
