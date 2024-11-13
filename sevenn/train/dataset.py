@@ -435,34 +435,37 @@ class AtomGraphDataset:
 
         if validator is None, by default it checks
         whether cutoff & chemical_species are same before augment
-
+        
         check consistent data type, float, double, long integer etc
         """
-
+        # exactly what are we augmenting here?
         def default_validator(db1, db2):
-            cut_consis = db1.cutoff == db2.cutoff
+            cut_consis = db1.cutoff == db2.cutoff # consis for consistent?
             # compare unordered lists
+            # unordered? wdym unordered .. oh right ....
+            # and itssa database..? amiright?actually no ..right itssa dataset .... i think
             x_is_not_onehot = (not db1.x_is_one_hot_idx) and (
                 not db2.x_is_one_hot_idx
             )
             return cut_consis and x_is_not_onehot
-
+        # k ....
         if validator is None:
-            validator = default_validator
-        if not validator(self, dataset):
+            validator = default_validator # oh
+        if not validator(self, dataset): # oh so it's the atomgraphdataset vs a new ... new .... i dunno 
             raise ValueError('given datasets are not compatible check cutoffs')
         for key, val in dataset.items():
             if key in self.dataset:
-                self.dataset[key].extend(val)
+                self.dataset[key].extend(val) # congrats you're part of the team
             else:
-                self.dataset.update({key: val})
-        self.user_labels = list(self.dataset.keys())
+                self.dataset.update({key: val}) # a pioneer ..
+        self.user_labels = list(self.dataset.keys()) # a cookie .. nice 
 
     def unify_dtypes(
         self,
         float_dtype: torch.dtype = torch.float32,
         int_dtype: torch.dtype = torch.int64
     ):
+        # no joke. this is what we call from scratch
         data_list = self.to_list()
         for datum in data_list:
             for k, v in list(datum.items()):
@@ -473,6 +476,7 @@ class AtomGraphDataset:
             del data[key]
 
     # TODO: this by_label is not straightforward
+    # thanks for the reminder .. 
     def save(self, path: str, by_label: bool = False):
         if by_label:
             for label, data in self.dataset.items():
