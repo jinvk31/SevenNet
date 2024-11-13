@@ -11,6 +11,7 @@ from sklearn.linear_model import Ridge
 import sevenn._keys as KEY
 import sevenn.util as util
 
+# building a model with the most basic libaries ofc ............ am i stupid? 
 
 class AtomGraphDataset:
     """
@@ -63,7 +64,7 @@ class AtomGraphDataset:
         self.cutoff = cutoff
         self.x_is_one_hot_idx = x_is_one_hot_idx
         if metadata is None:
-            metadata = {KEY.CUTOFF: cutoff}
+            metadata = {KEY.CUTOFF: cutoff} # TODO: umm sir? 
         self.meta = metadata
         if type(dataset) is list:
             self.dataset = {self.KEY_DEFAULT: dataset}
@@ -73,6 +74,7 @@ class AtomGraphDataset:
         # group_by_key here? or not?
 
     def rewrite_labels_to_data(self):
+        #umm userlabels? .. looks important for training datasets AAW ..
         """
         Based on self.dataset dict's keys
         write data[KEY.USER_LABEL] to correspond to dict's keys
@@ -84,6 +86,7 @@ class AtomGraphDataset:
                 data[KEY.USER_LABEL] = label
 
     def group_by_key(self, data_key: str = KEY.USER_LABEL):
+        # redundancy?
         """
         group dataset list by given key and save it as dict
         and change in-place
@@ -103,6 +106,7 @@ class AtomGraphDataset:
         self.user_labels = list(self.dataset.keys())
 
     def separate_info(self, data_key: str = KEY.INFO):
+        # is it?
         """
         Separate info from data and save it as list of dict
         to make it compatible with torch_geometric and later training
@@ -120,6 +124,7 @@ class AtomGraphDataset:
         return (data_list, info_list)
 
     def get_species(self):
+        # why not use chempy? to avoid parsing error .. bet
         """
         You can also use get_natoms and extract keys from there instead of this
         (And it is more efficient)
@@ -152,6 +157,7 @@ class AtomGraphDataset:
 
     def items(self):
         return self.dataset.items()
+    # ofc itssa dataset
 
     def to_dict(self):
         dct_dataset = {}
@@ -159,14 +165,15 @@ class AtomGraphDataset:
             dct_dataset[label] = [datum.to_dict() for datum in data_list]
         self.dataset = dct_dataset
         return self
-
+    # save dict - vocab for chemVAE - var name as map oOo
     def x_to_one_hot_idx(self, type_map: Dict[int, int]):
         """
         type_map is dict of {atomic_number: one_hot_idx}
-        after this process, the dataset has dependency on type_map
-        or chemical species user want to consider
+        after this process, the dataset has dependency on type_map !~DEPENDENCY~!
+        or chemical species user want to consider 
         """
         assert self.x_is_one_hot_idx is False
+    
         for data_list in self.dataset.values():
             for datum in data_list:
                 datum[self.DATA_KEY_X] = torch.LongTensor(
@@ -174,7 +181,9 @@ class AtomGraphDataset:
                 )
         self.type_map = type_map
         self.x_is_one_hot_idx = True
-
+    
+    # origin for the terminology? start lexi?
+    
     def toggle_requires_grad_of_data(
         self, key: str, requires_grad_value: bool
     ):
@@ -197,7 +206,8 @@ class AtomGraphDataset:
         returned value lost its dict key and became {KEY_DEFAULT: datalist}
         but KEY.USER_LABEL of each data is preserved
         """
-
+        # train test splitting? seems like ..
+        
         def divide(ratio: float, data_list: List, ignore_test=True):
             if ratio > 0.5:
                 raise ValueError('Ratio must not exceed 0.5')
@@ -220,6 +230,7 @@ class AtomGraphDataset:
                 valid_list = data_list[n_train : n_train + n_validation]
                 test_list = data_list[n_train + n_validation : data_len]
             return train_list, valid_list, test_list
+        # just evolved to a caveman from a monkey
 
         lists = ([], [], [])  # train, valid, test
         if constant_ratio_btw_labels:
